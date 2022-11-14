@@ -125,7 +125,7 @@ while True:
         if op_mode and position['type'] is None:
             enter_position(binance, symbol, cur_price, long_target, short_target, amount, position)
 
-        print(f"\n* 현재시간 :  {now.hour}:{now.minute}:{now.second}\n* 실행상태 :  {op_mode}\n - - - - - - - - - -\n▲ 상승진입 :  {long_target}\n= 현재가격 :  {cur_price}\n▼ 하락진입 :  {short_target}\n\n♨ >보유잔고 :  {usdt}\n♨ 현재상황 :  {position}\n\n▲ ma200 :  {ma200}\n▼ ma005 :  {ma5}\n\n* RSI 60.63 :  {round(rsi_binance(itv='1h'), 2)}\n* RSI 03.45 :  {round(rsi_binance(itv='3m'), 2)}\n\n / / / / / / / /")
+        print(f"\n* 현재시간 :  {now.hour}:{now.minute}:{now.second}\n* 실행상태 :  {op_mode}\n - - - - - - - - - -\n▲ 상승진입 :  {round(long_target)}\n= 현재가격 :  {round(cur_price)}\n▼ 하락진입 :  {round(short_target)}\n\n♨ 보유잔고 :  {round(usdt)}\n♨ 현재상황 :  {position}\n\n▲ ma200 :  {round(ma200)}\n▼ ma005 :  {round(ma5)}\n\n* RSI 60.63 :  {round(rsi_binance(itv='1h'), 2)}\n* RSI 03.45 :  {round(rsi_binance(itv='3m'), 2)}\n\n / / / / / / / /")
         time.sleep(3)
     except:
         print('[ SYSTEM RESET !! ]'
