@@ -25,14 +25,14 @@ def rsi_binance(itv='1h', symbol=symbol):
 
 # volatility breakout
 def cal_target(exchange, symbol):
-    btc = exchange.fetch_ohlcv(
+    data = exchange.fetch_ohlcv(
         symbol=symbol,
         timeframe='3m',
         since=None,
         limit=10
     )
     
-    df = pd.DataFrame(data=btc, columns=['datetime', 'open', 'high', 'low', 'close', 'volume'])
+    df = pd.DataFrame(data=data, columns=['datetime', 'open', 'high', 'low', 'close', 'volume'])
     df['datetime'] = pd.to_datetime(df['datetime'], unit='ms')
     df.set_index('datetime', inplace=True)
     
