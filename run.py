@@ -83,17 +83,40 @@ def rsi_binance(itv='1h', symbol=symbol):
     return rsi
 
 
+# 포지션 진입
 def enter_position(exchange, symbol, cur_price, long_target, short_target, amount, position):
-    if cur_price > long_target:     # 현재가 > long 목표가
+    if cur_price > long_target:     # 현재가 > long 목표가 (추가조건 작성필요)
         position['type'] = 'long'
         position['amount'] = amount
         exchange.create_market_buy_order(symbol=symbol, amount=amount)
-    elif cur_price < short_target:  # 현재가 < short 목표가
+    elif cur_price < short_target:  # 현재가 < short 목표가 (추가조건 작성필요)
         position['type'] = 'short'
         position['amount'] = amount
         exchange.create_market_sell_order(symbol=symbol, amount=amount)
+    
+    
+    # 시장 상황이 반대일때, 매도하기
+    amount = position['amount']
+    if position['type'] == 'long' and cur_price < long_target:     # 현재가 < long 목표가 (추가조건 작성필요)
+        exchange.create_market_sell_order(symbol=symbol, amount=amount)
+        position['type'] = None
+    elif position['type'] == 'short' and cur_price > short_target:  # 현재가 > short 목표가 (추가조건 작성필요)
+        exchange.create_market_buy_order(symbol=symbol, amount=amount)
+        position['type'] = None
 
+''' (위 반대 매도 코드 오류대비용 예시)
+# 시장 상황이 반대일때, 포지션 반대매매
+def exit_position(exchange, symbol, cur_price, long_target, short_target, position):
+    amount = position['amount']
+    if position['type'] == 'long' and cur_price < long_target:     # 현재가 < long 목표가 (추가조건 작성필요)
+        exchange.create_market_sell_order(symbol=symbol, amount=amount)
+        position['type'] = None
+    elif position['type'] == 'short' and cur_price > short_target:  # 현재가 > short 목표가 (추가조건 작성필요)
+        exchange.create_market_buy_order(symbol=symbol, amount=amount)
+        position['type'] = None
+'''
 
+''' (기본함수 / 지정시간 전부 청산코드)
 def exit_position(exchange, symbol, position):
     amount = position['amount']
     if position['type'] == 'long':
@@ -102,6 +125,7 @@ def exit_position(exchange, symbol, position):
     elif position['type'] == 'short':
         exchange.create_market_buy_order(symbol=symbol, amount=amount)
         position['type'] = None
+'''
 
 
 while True:
@@ -125,7 +149,7 @@ while True:
         if op_mode and position['type'] is None:
             enter_position(binance, symbol, cur_price, long_target, short_target, amount, position)
 
-        print(f"\n* 현재시간 :  {now.hour}:{now.minute}:{now.second}\n* 실행상태 :  {op_mode}\n - - - - - - - - - -\n▲ 상승진입 :  {round(long_target)}\n= 현재가격 :  {round(cur_price)}\n▼ 하락진입 :  {round(short_target)}\n\n♨ 보유잔고 :  {round(usdt)}\n♨ 현재상황 :  {position}\n\n▲ ma200 :  {round(ma200)}\n▼ ma005 :  {round(ma5)}\n\n* RSI 60.63 :  {round(rsi_binance(itv='1h'), 2)}\n* RSI 03.45 :  {round(rsi_binance(itv='3m'), 2)}\n\n / / / / / / / /")
+        print(f"\n* 현재시간 :  {now.hour}:{now.minute}:{now.second}\n* 실행상태 :  {op_mode}\n - - - - - - - - - -\n▲ 상승진입 :  {round(long_target)}\n= 현재가격 :  {round(cur_price)}\n▼ 하락진입 :  {round(short_target)}\n\n♨ 보유잔고 :  {round(usdt)}\n♨ 현재상황 :  {position}\n\n* RSI 60.63 :  {round(rsi_binance(itv='1h'), 2)}\n* RSI 03.45 :  {round(rsi_binance(itv='3m'), 2)}\n\n / / / / / / / /")
         time.sleep(3)
     except:
         print('[ SYSTEM RESET !! ]'
