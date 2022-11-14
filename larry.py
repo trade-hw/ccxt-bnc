@@ -7,8 +7,7 @@ def cal_target(exchange, symbol):  # 심볼에 대한 ohlcv (지정시간)캔들
         symbol=symbol,
         timeframe='3m',  # 지정시간
         since=None,
-        limit=10  # 몇 개를 얻을 것인지
-    )
+    )  #  limit=10  # 리밋을 추가하여 갯수제한적 데이터 추출가능
     
     # 위 (지정시간)캔들 데이터를, 데이터프레임 객체로 변환
     df = pd.DataFrame(data=data, columns=['datetime', 'open', 'high', 'low', 'close', 'volume'])
