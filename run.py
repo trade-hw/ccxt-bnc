@@ -96,7 +96,7 @@ while True:
         time.sleep(10)
 
     ticker = binance.fetch_ticker(symbol)
-    cur_price = ticker['last']
+    cur_price = ticker['last']  # 현재가격 얻기
     amount = cal_amount(usdt, cur_price)
 
     if op_mode and position['type'] is None:
