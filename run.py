@@ -33,6 +33,7 @@ position = {
     "amount": 0
 }
 
+# --- 레버리지 구간 ---
 markets = binance.load_markets()
 symbol = "symbol"
 market = binance.market(symbol)
@@ -47,6 +48,7 @@ order = binance.create_market_buy_order(
     symbol=symbol,
     amount=amount,
 )
+# --- 레버리지 구간 ---
 
 
 def cal_amount(usdt_balance, cur_price):
