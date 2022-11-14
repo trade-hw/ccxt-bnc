@@ -1,29 +1,7 @@
 import pandas as pd
 
 
-#  RSI 구하기
-def rsi_calc(ohlc: pd.DataFrame, period: int = 14):
-    ohlc = ohlc[4].astype(float)
-    delta = ohlc.diff()
-    gains, declines = delta.copy(), delta.copy()
-    gains[gains < 0] = 0
-    declines[declines > 0] = 0
-
-    _gain = gains.ewm(com=(period-1), min_periods=period).mean()
-    _loss = declines.abs().ewm(com=(period-1), min_periods=period).mean()
-
-    RS = _gain / _loss
-    return pd.Series(100-(100/(1+RS)), name="RSI")
-
-def rsi_binance(itv='1h', symbol=symbol):
-    binance = ccxt.binance()
-    ohlcv = binance.fetch_ohlcv(symbol=symbol, timeframe=itv, limit=200)
-    df = pd.DataFrame(ohlcv)
-    rsi = rsi_calc(df,14).iloc[-1]
-    return rsi
-
-
-# volatility breakout
+# 롱숏 진입 계산
 def cal_target(exchange, symbol):  # 심볼에 대한 ohlcv (지정시간)캔들 데이터 얻기
     data = exchange.fetch_ohlcv(
         symbol=symbol,
