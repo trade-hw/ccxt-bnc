@@ -34,6 +34,7 @@ position = {
     "amount": 0
 }
 
+''' ( 뭔가 자꾸 오류가 나서 보류. 웹/앱 에서 직접 설정 가능)
 # --- 레버리지 구간 ---
 markets = binance.load_markets()
 symbol = "symbol"
@@ -50,6 +51,7 @@ order = binance.create_market_buy_order(
     amount=amount,
 )
 # --- 레버리지 구간 ---
+'''
 
 
 def cal_amount(usdt_balance, cur_price):
