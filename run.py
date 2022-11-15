@@ -130,6 +130,16 @@ while True:
         else:
             amountck = True
 
+        # 포지션 실시간 신호포착
+        if cur_price > long_target:     # 현재가 > long 목표가 (추가조건 작성필요)
+            if (cur_price < ma200 < ma5_60) and (rsi_binance(timef='3m') < 45) and (rsi_binance(timef='1h') < 63):
+                if (open_price > ma5):
+                    market_mode = Long
+        elif cur_price < short_target:  # 현재가 < short 목표가 (추가조건 작성필요)
+            if (cur_price > ma200 > ma5_60) and (rsi_binance(timef='3m') > 45):  # 1h_rsi 일단보류
+                if (open_price < ma5):
+                    market_mode = short
+        
         # 시장현황 분석 후, 반대조건 충족시 매도실행
         if op_mode and amountck is True:
             if position['type'] == 'long' or position['type'] == 'short':
