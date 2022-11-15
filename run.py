@@ -128,50 +128,48 @@ market_mode_short = market_mode_short(binance, symbol, cur_price, long_target, s
 
 
 while True:
-    try:
-        now = datetime.datetime.now()
-        long_target, short_target, open_price, ma5, ma200 = larry.cal_target(binance, symbol)
-        ma5_60 = larry.cal_ma5_60(binance, symbol)
-        balance = binance.fetch_balance()
-        usdt = balance['total']['USDT']
-        usdt_check = usdt
-        ticker = binance.fetch_ticker(symbol)
-        cur_price = ticker['last']  # 현재가격 얻기
-        amount = cal_amount(usdt, cur_price)
-        amount_check = amount  # amount 포지션 수량 체크 
+    now = datetime.datetime.now()
+    long_target, short_target, open_price, ma5, ma200 = larry.cal_target(binance, symbol)
+    ma5_60 = larry.cal_ma5_60(binance, symbol)
+    balance = binance.fetch_balance()
+    usdt = balance['total']['USDT']
+    usdt_check = usdt
+    ticker = binance.fetch_ticker(symbol)
+    cur_price = ticker['last']  # 현재가격 얻기
+    amount = cal_amount(usdt, cur_price)
+    amount_check = amount  # amount 포지션 수량 체크
 
 
-        # 프로그램 시작시 usdt 머니 check !!
-        if usdt_check < 5:  # 최소 5달러 이상 있어야할것!
-            usdtck = False
-        else:
-            usdtck = True
+    # 프로그램 시작시 usdt 머니 check !!
+    if usdt_check < 5:  # 최소 5달러 이상 있어야할것!
+        usdtck = False
+    else:
+        usdtck = True
 
-        # 프로그램 시작시 amount 수량 check !!
-        if amount_check < 1:  # 최소 1수량 이상 있어야할것!
-            amountck = False
-        else:
-            amountck = True
-        
-        # 시장현황 분석 후, 반대조건 충족시 매도실행
-        if op_mode and amountck is True:
-            if position['type'] == 'long' or position['type'] == 'short':
-                reverse_position(binance, symbol, cur_price, long_target, short_target, ma5, ma200, ma5_60, open_price, position)
-                op_mode = False
+    # 프로그램 시작시 amount 수량 check !!
+    if amount_check < 1:  # 최소 1수량 이상 있어야할것!
+        amountck = False
+    else:
+        amountck = True
 
-        # 봉 시작시, 포지션 진입금지
-        if now.minute and (0 <= now.second <= 3):
-            op_mode = False  # 포지션 진입금지
+    # 시장현황 분석 후, 반대조건 충족시 매도실행
+    if op_mode and amountck is True:
+        if position['type'] == 'long' or position['type'] == 'short':
+            reverse_position(binance, symbol, cur_price, long_target, short_target, ma5, ma200, ma5_60, open_price, position)
+            op_mode = False
 
-        # 제한시간 이후, 포지션 진입가능
-        if now.minute and (3 <= now.second <= 6):
-            op_mode = True  # 포지션 진입가능
+    # 봉 시작시, 포지션 진입금지
+    if now.minute and (0 <= now.second <= 3):
+        op_mode = False  # 포지션 진입금지
 
-        # 포지션 목표가 / 롱숏 조건 확인 후 진입시도
-        if op_mode and position['type'] is None:
-            enter_position(binance, symbol, cur_price, long_target, short_target, ma5, ma200, ma5_60, open_price, amount, position)
+    # 제한시간 이후, 포지션 진입가능
+    if now.minute and (3 <= now.second <= 6):
+        op_mode = True  # 포지션 진입가능
 
-        print(f"\n* 현재시간 :  {now.hour}:{now.minute}:{now.second} * *\n▲ 롱포지션 :  {market_mode_long}\n* 실행상태 :  {op_mode}\n▼ 숏포지션 :  {market_mode_short}\n - - - - - - - - - -\n▲ 상승진입 :  {round(long_target)}\n= 현재가격 :  {round(cur_price)}\n▼ 하락진입 :  {round(short_target)}\n\n♨ 보유잔고 :  {usdtck}  ＄{round(usdt)}\n♨ 현재상황 :  {position} {amountck}\n\n* RSI 60.63 :  {round(rsi_binance(itv='1h'), 2)}\n* RSI 03.45 :  {round(rsi_binance(itv='3m'), 2)}\n\n / / / / / / / /")
-        time.sleep(3)
-    except:
-        print('[ SYSTEM RESET !! ]')
+    # 포지션 목표가 / 롱숏 조건 확인 후 진입시도
+    if op_mode and position['type'] is None:
+        enter_position(binance, symbol, cur_price, long_target, short_target, ma5, ma200, ma5_60, open_price, amount, position)
+
+    print(f"\n* 현재시간 :  {now.hour}:{now.minute}:{now.second} * *\n▲ 롱포지션 :  {market_mode_long}\n* 실행상태 :  {op_mode}\n▼ 숏포지션 :  {market_mode_short}\n - - - - - - - - - -\n▲ 상승진입 :  {round(long_target)}\n= 현재가격 :  {round(cur_price)}\n▼ 하락진입 :  {round(short_target)}\n\n♨ 보유잔고 :  {usdtck}  ＄{round(usdt)}\n♨ 현재상황 :  {position} {amountck}\n\n* RSI 60.63 :  {round(rsi_binance(timef='1h'), 2)}\n* RSI 03.45 :  {round(rsi_binance(timef='3m'), 2)}\n\n / / / / / / / /")
+    time.sleep(3)
+    print('[ SYSTEM RESET !! ]')
