@@ -121,10 +121,10 @@ def market_mode_short(binance, symbol, cur_price, long_target, short_target, ma5
             else:
                 market_mode_short = False
 
-ticker = binance.fetch_ticker(symbol)  # 현재가격 바이낸스에서 얻기
-cur_price = ticker['last']  # 현재가격 얻기
-market_mode_long = market_mode_long(binance, symbol, cur_price, long_target, short_target, ma5, ma200, ma5_60, open_price)
-market_mode_short = market_mode_short(binance, symbol, cur_price, long_target, short_target, ma5, ma200, ma5_60, open_price)
+#ticker = binance.fetch_ticker(symbol)  # 현재가격 바이낸스에서 얻기
+#cur_price = ticker['last']  # 현재가격 얻기
+#market_mode_long = market_mode_long(binance, symbol, cur_price, long_target, short_target, ma5, ma200, ma5_60, open_price)
+#market_mode_short = market_mode_short(binance, symbol, cur_price, long_target, short_target, ma5, ma200, ma5_60, open_price)
 
 
 while True:
@@ -138,6 +138,9 @@ while True:
     cur_price = ticker['last']  # 현재가격 얻기
     amount = cal_amount(usdt, cur_price)
     amount_check = amount  # amount 포지션 수량 체크
+
+    market_mode_long = get_market_mode_long(binance, symbol, cur_price, long_target, short_target, ma5, ma200, ma5_60, open_price)
+    market_mode_short = get_market_mode_short(binance, symbol, cur_price, long_target, short_target, ma5, ma200, ma5_60, open_price)
 
 
     # 프로그램 시작시 usdt 머니 check !!
