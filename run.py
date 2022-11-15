@@ -175,4 +175,3 @@ while True:
 
     print(f"\n* 현재시간 :  {now.hour}:{now.minute}:{now.second} * *\n▲ 롱포지션 :  {market_mode_long}\n* 실행상태 :  {op_mode}\n▼ 숏포지션 :  {market_mode_short}\n - - - - - - - - - -\n▲ 상승진입 :  {round(long_target)}\n= 현재가격 :  {round(cur_price)}\n▼ 하락진입 :  {round(short_target)}\n\n♨ 보유잔고 :  {usdtck}  ＄{round(usdt)}\n♨ 현재상황 :  {position} {amountck}\n\n* RSI 60.63 :  {round(rsi_binance(timef='1h'), 2)}\n* RSI 03.45 :  {round(rsi_binance(timef='3m'), 2)}\n\n / / / / / / / /")
     time.sleep(3)
-    print('[ SYSTEM RESET !! ]')
