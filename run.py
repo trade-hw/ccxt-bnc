@@ -104,6 +104,29 @@ def reverse_position(exchange, symbol, cur_price, long_target, short_target, ma5
                 position['type'] = None
 
 
+# market_mode 실시간 시장현황
+def market_mode_long(binance, symbol, cur_price, long_target, short_target, ma5, ma200, ma5_60, open_price):
+    if cur_price > long_target:
+        if (cur_price < ma200 < ma5_60) and (rsi_binance(timef='3m') < 45) and (rsi_binance(timef='1h') < 63):
+            if (open_price > ma5):
+                market_mode_long = True
+            else:
+                market_mode_long = False
+
+def market_mode_short(binance, symbol, cur_price, long_target, short_target, ma5, ma200, ma5_60, open_price):
+    if cur_price < short_target:
+        if (cur_price > ma200 > ma5_60) and (rsi_binance(timef='3m') > 45):  # 1h_rsi 일단보류
+            if (open_price < ma5):
+                market_mode_short = True
+            else:
+                market_mode_short = False
+
+ticker = binance.fetch_ticker(symbol)  # 현재가격 바이낸스에서 얻기
+cur_price = ticker['last']  # 현재가격 얻기
+market_mode_long = market_mode_long(binance, symbol, cur_price, long_target, short_target, ma5, ma200, ma5_60, open_price)
+market_mode_short = market_mode_short(binance, symbol, cur_price, long_target, short_target, ma5, ma200, ma5_60, open_price)
+
+
 while True:
     try:
         now = datetime.datetime.now()
@@ -129,16 +152,6 @@ while True:
             amountck = False
         else:
             amountck = True
-
-        # 포지션 실시간 신호포착
-        if cur_price > long_target:     # 현재가 > long 목표가 (추가조건 작성필요)
-            if (cur_price < ma200 < ma5_60) and (rsi_binance(timef='3m') < 45) and (rsi_binance(timef='1h') < 63):
-                if (open_price > ma5):
-                    market_mode = True
-        elif cur_price < short_target:  # 현재가 < short 목표가 (추가조건 작성필요)
-            if (cur_price > ma200 > ma5_60) and (rsi_binance(timef='3m') > 45):  # 1h_rsi 일단보류
-                if (open_price < ma5):
-                    market_mode = False
         
         # 시장현황 분석 후, 반대조건 충족시 매도실행
         if op_mode and amountck is True:
@@ -158,7 +171,7 @@ while True:
         if op_mode and position['type'] is None:
             enter_position(binance, symbol, cur_price, long_target, short_target, ma5, ma200, ma5_60, open_price, amount, position)
 
-        print(f"\n* 현재시간 :  {now.hour}:{now.minute}:{now.second} * *\n* 실행상태 :  {op_mode}\n - - - - - - - - - -\n▲ 상승진입 :  {round(long_target)}\n= 현재가격 :  {round(cur_price)}\n▼ 하락진입 :  {round(short_target)}\n\n♨ 보유잔고 :  {usdtck}  ＄{round(usdt)}\n♨ 현재상황 :  {position} {amountck}\n\n* RSI 60.63 :  {round(rsi_binance(itv='1h'), 2)}\n* RSI 03.45 :  {round(rsi_binance(itv='3m'), 2)}\n\n / / / / / / / /")
+        print(f"\n* 현재시간 :  {now.hour}:{now.minute}:{now.second} * *\n▲ 롱포지션 :  {market_mode_long}\n* 실행상태 :  {op_mode}\n▼ 숏포지션 :  {market_mode_short}\n - - - - - - - - - -\n▲ 상승진입 :  {round(long_target)}\n= 현재가격 :  {round(cur_price)}\n▼ 하락진입 :  {round(short_target)}\n\n♨ 보유잔고 :  {usdtck}  ＄{round(usdt)}\n♨ 현재상황 :  {position} {amountck}\n\n* RSI 60.63 :  {round(rsi_binance(itv='1h'), 2)}\n* RSI 03.45 :  {round(rsi_binance(itv='3m'), 2)}\n\n / / / / / / / /")
         time.sleep(3)
     except:
         print('[ SYSTEM RESET !! ]')
