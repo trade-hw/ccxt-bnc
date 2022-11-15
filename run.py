@@ -24,7 +24,8 @@ binance = ccxt.binance(config={
 
 
 symbol = "BTC/USDT"  # 코인지정
-long_target, short_target, ma5, ma200 = larry.cal_target(binance, symbol)  # 계산식/지표 불러오기
+long_target, short_target, open_price, ma5, ma200 = larry.cal_target(binance, symbol)  # 계산식/지표 불러오기
+ma5_60 = larry.cal_ma5_60(binance, symbol)  # MA5 1시간 이동평균선 불러오기
 balance = binance.fetch_balance()
 usdt = balance['total']['USDT']
 usdt_check = usdt  # 보유 달러 체크 주문명
@@ -64,41 +65,50 @@ def rsi_calc(ohlc: pd.DataFrame, period: int = 14):
     RS = _gain / _loss
     return pd.Series(100-(100/(1+RS)), name="RSI")
 
-def rsi_binance(itv='1h', symbol=symbol):
+def rsi_binance(timef=timeframe, symbol=symbol):
     binance = ccxt.binance()
-    ohlcv = binance.fetch_ohlcv(symbol=symbol, timeframe=itv, limit=200)
+    ohlcv = binance.fetch_ohlcv(symbol=symbol, timeframe=timef, limit=200)
     df = pd.DataFrame(ohlcv)
     rsi = rsi_calc(df,14).iloc[-1]
     return rsi
 
 
 # 포지션 진입
-def enter_position(exchange, symbol, cur_price, long_target, short_target, amount, position):
+def enter_position(exchange, symbol, cur_price, long_target, short_target, ma5, ma200, ma5_60, open_price, amount, position):
     if cur_price > long_target:     # 현재가 > long 목표가 (추가조건 작성필요)
-        position['type'] = 'long'
-        position['amount'] = amount
-        exchange.create_market_buy_order(symbol=symbol, amount=amount)
+        if usdtck is True and (cur_price < ma200 < ma5_60) and (rsi_binance(timef='3m') < 45) and (rsi_binance(timef='1h') < 63):
+            if (open_price > ma5):
+                position['type'] = 'long'
+                position['amount'] = amount
+                exchange.create_market_buy_order(symbol=symbol, amount=amount)
     elif cur_price < short_target:  # 현재가 < short 목표가 (추가조건 작성필요)
-        position['type'] = 'short'
-        position['amount'] = amount
-        exchange.create_market_sell_order(symbol=symbol, amount=amount)
+        if usdtck is True and (cur_price > ma200 > ma5_60) and (rsi_binance(timef='3m') > 45):  # 1h_rsi 일단보류
+            if (open_price < ma5):
+                position['type'] = 'short'
+                position['amount'] = amount
+                exchange.create_market_sell_order(symbol=symbol, amount=amount)
 
 
 # 시장 상황이 반대일때, 포지션 반대매매
-def reverse_position(exchange, symbol, cur_price, long_target, short_target, position):
+def reverse_position(exchange, symbol, cur_price, long_target, short_target, ma5, ma200, ma5_60, open_price, position):
     amount = position['amount']
-    if position['type'] == 'long' and cur_price < long_target:     # 현재가 < long 목표가 (추가조건 작성필요)
-        exchange.create_market_sell_order(symbol=symbol, amount=amount)
-        position['type'] = None
-    elif position['type'] == 'short' and cur_price > short_target:  # 현재가 > short 목표가 (추가조건 작성필요)
-        exchange.create_market_buy_order(symbol=symbol, amount=amount)
-        position['type'] = None
+    if position['type'] == 'long' and cur_price < long_target:  # 현재가 < long 목표가
+        if amountck is True and (cur_price > ma200 > ma5_60) and (rsi_binance(timef='3m') > 45):  # 1h_rsi 일단보류
+            if (open_price < ma5):
+                exchange.create_market_sell_order(symbol=symbol, amount=amount)
+                position['type'] = None
+    elif position['type'] == 'short' and cur_price > short_target:  # 현재가 > short 목표가
+        if amountck is True and (cur_price < ma200 < ma5_60) and (rsi_binance(timef='3m') < 45) and (rsi_binance(timef='1h') < 63):
+            if (open_price > ma5):
+                exchange.create_market_buy_order(symbol=symbol, amount=amount)
+                position['type'] = None
 
 
 while True:
     try:
         now = datetime.datetime.now()
-        long_target, short_target, ma5, ma200 = larry.cal_target(binance, symbol)
+        long_target, short_target, open_price, ma5, ma200 = larry.cal_target(binance, symbol)
+        ma5_60 = larry.cal_ma5_60(binance, symbol)
         balance = binance.fetch_balance()
         usdt = balance['total']['USDT']
         usdt_check = usdt
@@ -123,7 +133,7 @@ while True:
         # 시장현황 분석 후, 반대조건 충족시 매도실행
         if op_mode and amountck is True:
             if position['type'] == 'long' or position['type'] == 'short':
-                reverse_position(exchange, symbol, cur_price, long_target, short_target, position)
+                reverse_position(binance, symbol, cur_price, long_target, short_target, ma5, ma200, ma5_60, open_price, position)
                 op_mode = False
 
         # 봉 시작시, 포지션 진입금지
@@ -136,7 +146,7 @@ while True:
 
         # 포지션 목표가 / 롱숏 조건 확인 후 진입시도
         if op_mode and position['type'] is None:
-            enter_position(binance, symbol, cur_price, long_target, short_target, amount, position)
+            enter_position(binance, symbol, cur_price, long_target, short_target, ma5, ma200, ma5_60, open_price, amount, position)
 
         print(f"\n* 현재시간 :  {now.hour}:{now.minute}:{now.second} * *\n* 실행상태 :  {op_mode}\n - - - - - - - - - -\n▲ 상승진입 :  {round(long_target)}\n= 현재가격 :  {round(cur_price)}\n▼ 하락진입 :  {round(short_target)}\n\n♨ 보유잔고 :  {usdtck}  ＄{round(usdt)}\n♨ 현재상황 :  {position} {amountck}\n\n* RSI 60.63 :  {round(rsi_binance(itv='1h'), 2)}\n* RSI 03.45 :  {round(rsi_binance(itv='3m'), 2)}\n\n / / / / / / / /")
         time.sleep(3)
