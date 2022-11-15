@@ -1,7 +1,7 @@
 import pandas as pd
 
 
-# 롱숏 진입 계산
+# 롱숏 진입 계산 (지정시간 필수)
 def cal_target(exchange, symbol):  # 심볼에 대한 ohlcv (지정시간)캔들 데이터 얻기
     data = exchange.fetch_ohlcv(
         symbol=symbol,
@@ -26,4 +26,26 @@ def cal_target(exchange, symbol):  # 심볼에 대한 ohlcv (지정시간)캔들
     long_target = today['open'] + (yesterday['high'] - yesterday['low']) * 0.1
     short_target = today['open'] - (yesterday['high'] - yesterday['low']) * 0.1
     
-    return long_target, short_target, ma5[-1], ma200[-1]
+    #  현재 오픈가격 구하기
+    open_price = today['open']
+    
+    return long_target, short_target, open_price, ma5[-1], ma200[-1]
+
+
+# MA5 1시간 이동평균선 구하기 (지정시간 필수)
+def cal_ma5_60(exchange, symbol):  # 심볼에 대한 ohlcv (지정시간)캔들 데이터 얻기
+    data = exchange.fetch_ohlcv(
+        symbol=symbol,
+        timeframe='1h',  # 지정시간
+        since=None,
+    )  #  limit=10  # 리밋을 추가하여 갯수제한적 데이터 추출가능
+    
+    # 위 (지정시간)캔들 데이터를, 데이터프레임 객체로 변환
+    df = pd.DataFrame(data=data, columns=['datetime', 'open', 'high', 'low', 'close', 'volume'])
+    df['datetime'] = pd.to_datetime(df['datetime'], unit='ms')
+    df.set_index('datetime', inplace=True)
+    
+    #  MA 이동평균선 구하기
+    ma5_60 = df['close'].rolling(5).mean()
+    
+    return ma5_60[-1]
