@@ -7,12 +7,12 @@ import larry
 import math
 
 
-with open("../api.txt") as f:
+with open("api.txt") as f:
     lines = f.readlines()
     api_key = lines[0].strip()
     secret  = lines[1].strip()
 
-
+# 바이낸스 객체 생성
 binance = ccxt.binance(config={
     'apiKey': api_key,
     'secret': secret,
@@ -28,30 +28,11 @@ long_target, short_target, ma5, ma200 = larry.cal_target(binance, symbol)  # 계
 balance = binance.fetch_balance()
 usdt = balance['total']['USDT']
 timeframe = binance.fetch_ohlcv(symbol)
-op_mode = False
+op_mode = False  # 봇 시작기 기본 상태 (포지션 조건 맞으면 자동 트루)
 position = {
     "type": None,
     "amount": 0
 }
-
-'''
-# --- 레버리지 구간 --- ( 뭔가 자꾸 오류가 나서 보류. 웹/앱 에서 직접 설정 가능)
-markets = binance.load_markets()
-symbol = "symbol"
-market = binance.market(symbol)
-leverage = 5  # 레버리지 설정
-
-resp = binance.fapiPrivate_post_leverage({
-    'symbol': market['id'],
-    'leverage': leverage
-})
-
-order = binance.create_market_buy_order(
-    symbol=symbol,
-    amount=amount,
-)
-# --- 레버리지 구간 ---
-'''
 
 
 def cal_amount(usdt_balance, cur_price):
@@ -126,10 +107,12 @@ while True:
 
         if op_mode and position['type'] is None:
             enter_position(binance, symbol, cur_price, long_target, short_target, amount, position)
-        elif op_mode and position['type'] == 'long':
-            reverse_position(exchange, symbol, cur_price, long_target, short_target, position):
-        elif op_mode and position['type'] == 'short':
-            reverse_position(exchange, symbol, cur_price, long_target, short_target, position):
+
+        if op_mode and position['type'] == 'long':
+            reverse_position(exchange, symbol, cur_price, long_target, short_target, position)
+
+        if op_mode and position['type'] == 'short':
+            reverse_position(exchange, symbol, cur_price, long_target, short_target, position)
 
         print(f"\n* 현재시간 :  {now.hour}:{now.minute}:{now.second} * *\n* 실행상태 :  {op_mode}\n - - - - - - - - - -\n▲ 상승진입 :  {round(long_target)}\n= 현재가격 :  {round(cur_price)}\n▼ 하락진입 :  {round(short_target)}\n\n♨ 보유잔고 :  {round(usdt)}\n♨ 현재상황 :  {position}\n\n* RSI 60.63 :  {round(rsi_binance(itv='1h'), 2)}\n* RSI 03.45 :  {round(rsi_binance(itv='3m'), 2)}\n\n / / / / / / / /")
         time.sleep(3)
