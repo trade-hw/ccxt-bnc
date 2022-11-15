@@ -104,29 +104,6 @@ def reverse_position(exchange, symbol, cur_price, long_target, short_target, ma5
                 position['type'] = None
 
 
-# market_mode 실시간 시장현황
-def market_mode_long(binance, symbol, cur_price, long_target, short_target, ma5, ma200, ma5_60, open_price):
-    if cur_price > long_target:
-        if (cur_price < ma200 < ma5_60) and (rsi_binance(timef='3m') < 45) and (rsi_binance(timef='1h') < 63):
-            if (open_price > ma5):
-                market_mode_long = True
-            else:
-                market_mode_long = False
-
-def market_mode_short(binance, symbol, cur_price, long_target, short_target, ma5, ma200, ma5_60, open_price):
-    if cur_price < short_target:
-        if (cur_price > ma200 > ma5_60) and (rsi_binance(timef='3m') > 45):  # 1h_rsi 일단보류
-            if (open_price < ma5):
-                market_mode_short = True
-            else:
-                market_mode_short = False
-
-#ticker = binance.fetch_ticker(symbol)  # 현재가격 바이낸스에서 얻기
-#cur_price = ticker['last']  # 현재가격 얻기
-#market_mode_long = market_mode_long(binance, symbol, cur_price, long_target, short_target, ma5, ma200, ma5_60, open_price)
-#market_mode_short = market_mode_short(binance, symbol, cur_price, long_target, short_target, ma5, ma200, ma5_60, open_price)
-
-
 while True:
     now = datetime.datetime.now()
     long_target, short_target, open_price, ma5, ma200 = larry.cal_target(binance, symbol)
@@ -138,9 +115,6 @@ while True:
     cur_price = ticker['last']  # 현재가격 얻기
     amount = cal_amount(usdt, cur_price)
     amount_check = amount  # amount 포지션 수량 체크
-
-    market_mode_long = get_market_mode_long(binance, symbol, cur_price, long_target, short_target, ma5, ma200, ma5_60, open_price)
-    market_mode_short = get_market_mode_short(binance, symbol, cur_price, long_target, short_target, ma5, ma200, ma5_60, open_price)
 
 
     # 프로그램 시작시 usdt 머니 check !!
@@ -154,6 +128,16 @@ while True:
         amountck = False
     else:
         amountck = True
+
+    if cur_price > long_target and (cur_price < ma200 < ma5_60) and (rsi_binance(timef='3m') < 45) and (rsi_binance(timef='1h') < 63) and (open_price > ma5):
+        market_mode_long = True
+    else:  # 시장현황 : 롱 여부
+        market_mode_long = False
+
+    if cur_price < short_target and (cur_price > ma200 > ma5_60) and (rsi_binance(timef='3m') > 45) and (open_price < ma5):
+        market_mode_short = True
+    else:  # 시장현황 : 숏 여부
+        market_mode_short = False
 
     # 시장현황 분석 후, 반대조건 충족시 매도실행
     if op_mode and amountck is True:
