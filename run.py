@@ -143,7 +143,7 @@ while True:
             op_mode = False  # 포지션 진입금지
 
         # 제한시간 이후, 포지션 진입가능
-        if now.minute and (3 <= now.second <= 5):
+        if now.minute and (3 <= now.second <= 6):
             op_mode = True  # 포지션 진입가능
 
         if op_mode and position['type'] is None:
